@@ -204,8 +204,10 @@ entities that already exist or clearly belong as pages in this wiki. Treat
 configuration and infrastructure terms as code-formatted text unless the wiki
 intentionally maintains a real page for that term.
 
-After filing, add an entry to `{WikiPath}/wiki/index.md` under Questions and
-append to `{WikiPath}/wiki/log.md`. Also refresh `{WikiPath}/wiki/hot.md`.
+After filing, add an entry to `{WikiPath}/wiki/index.md` under Questions,
+append to `{WikiPath}/wiki/log.md`, upsert
+`{WikiPath}/wiki/meta/context-state.json`, and regenerate
+`{WikiPath}/wiki/hot.md`.
 
 ---
 

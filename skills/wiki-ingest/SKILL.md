@@ -17,10 +17,11 @@ Read the source. Write the wiki. Cross-reference everything. A single source typ
 Before any ingest work:
 
 1. Read `../wiki/references/project-binding.md`.
-2. Resolve the active wiki root.
-3. If `WikiMode` is `reference`, stop. Ingest writes to the wiki and is only
+2. Read `../wiki/references/context-state.md`.
+3. Resolve the active wiki root.
+4. If `WikiMode` is `reference`, stop. Ingest writes to the wiki and is only
    allowed in `managed` mode or local-vault mode.
-4. Treat every path below as relative to the resolved wiki root, not the current
+5. Treat every path below as relative to the resolved wiki root, not the current
    project directory.
 
 ## Delta Tracking
@@ -124,8 +125,7 @@ Steps:
 6. **Update** relevant domain page(s) and their `_index.md` sub-indexes.
 7. **Update** `{WikiPath}/wiki/overview.md` if the big picture changed.
 8. **Update** `{WikiPath}/wiki/index.md`. Add entries for all new pages.
-9. **Update** `{WikiPath}/wiki/hot.md` with this ingest's context.
-10. **Append** to `{WikiPath}/wiki/log.md` (new entries at the TOP):
+9. **Append** to `{WikiPath}/wiki/log.md` (new entries at the TOP):
     ```markdown
     ## [YYYY-MM-DD] ingest | Source Title
     - Source: `{WikiPath}/.raw/articles/filename.md`
@@ -134,7 +134,13 @@ Steps:
     - Pages updated: [[Page 3]], [[Page 4]]
     - Key insight: One sentence on what is new.
     ```
-11. **Check for contradictions.** If new info conflicts with existing pages, add `> [!contradiction]` callouts on both pages.
+10. **Upsert** `{WikiPath}/wiki/meta/context-state.json` with one active item for
+    the ingest result. Use a stable id such as `ingest:[source-slug]`, point the
+    link to the primary source summary page, store a short summary, set
+    `priority` to `2` for major ingests, and default `expires_at` to 3 days
+    after `updated_at`.
+11. **Regenerate** `{WikiPath}/wiki/hot.md` from `context-state.json`.
+12. **Check for contradictions.** If new info conflicts with existing pages, add `> [!contradiction]` callouts on both pages.
 
 ---
 
@@ -179,8 +185,9 @@ Steps:
 1. List all files to process. Confirm with user before starting.
 2. Process each source following the single ingest flow. Defer cross-referencing between sources until step 3.
 3. After all sources: do a cross-reference pass. Look for connections between the newly ingested sources.
-4. Update `{WikiPath}/wiki/index.md`, `hot.md`, and `log.md` once at the end
-   (not per-source).
+4. Update `{WikiPath}/wiki/index.md` and `log.md` once at the end, upsert
+   `wiki/meta/context-state.json`, then regenerate `wiki/hot.md` once at the
+   end, not per-source.
 5. Report: "Processed N sources. Created X pages, updated Y pages. Here are the key connections I found."
 
 Batch ingest is less interactive. For 30+ sources, expect significant processing time. Check in with the user after every 10 sources.
@@ -231,6 +238,7 @@ Do not silently overwrite old claims. Flag and let the user decide.
   documents.
 - Do not create duplicate pages. Always check the index and search before creating.
 - Do not skip the log entry. Every ingest must be recorded.
-- Do not skip the hot cache update. It is what keeps future sessions fast.
+- Do not skip the context-state update. The hot cache must be regenerated from
+  it.
 - Do not create `wiki/` or `.raw/` in the current project when the project is
   bound to another `WikiPath`.

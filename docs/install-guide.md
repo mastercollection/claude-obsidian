@@ -80,7 +80,7 @@ Then scaffold the full wiki structure.
 Type `/wiki` in Claude Code. Claude will:
 - Detect your vault mode (website, GitHub, business, personal, research, or book/course)
 - Create the folder structure and core wiki pages
-- Set up `wiki/index.md`, `wiki/hot.md`, `wiki/log.md`, and `wiki/overview.md`
+- Set up `wiki/index.md`, `wiki/meta/context-state.json`, `wiki/hot.md`, `wiki/log.md`, and `wiki/overview.md`
 
 ### 2. Drop your first source
 
@@ -118,7 +118,7 @@ Claude reads the hot cache, scans the index, drills into relevant pages, and giv
 | `/canvas add pdf [path]` | Add a PDF document |
 | `/canvas add note [page]` | Pin a wiki page as a linked card |
 | `lint the wiki` | Health check: orphans, dead links, gaps |
-| `update hot cache` | Refresh `hot.md` with latest context summary |
+| `update hot cache` | Regenerate `hot.md` from `wiki/meta/context-state.json` |
 
 ---
 
@@ -228,8 +228,9 @@ Path: ~/path/to/claude-obsidian
 
 When you need context not in this project:
 1. Read wiki/hot.md first (recent context cache)
-2. If not enough, read wiki/index.md
-3. If you need domain details, read the relevant wiki page
+2. If it looks stale or incomplete, read `wiki/meta/context-state.json`
+3. If not enough, read wiki/index.md
+4. If you need domain details, read the relevant wiki page
 
 Do NOT read the wiki for general coding questions.
 ```

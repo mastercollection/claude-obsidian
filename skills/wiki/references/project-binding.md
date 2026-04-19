@@ -40,13 +40,15 @@ When a bound wiki is configured:
 ### Managed
 
 - Reads and writes are allowed
-- Update the target wiki's `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md`
+- Update the target wiki's `wiki/index.md`, `wiki/log.md`,
+  `wiki/meta/context-state.json`, and `wiki/hot.md`
 - Save new source material only inside `{WikiPath}\.raw\...`
 
 ### Reference
 
 - Read-only access only
-- You may read `wiki/hot.md`, `wiki/index.md`, and relevant pages
+- You may read `wiki/hot.md`, `wiki/meta/context-state.json`, `wiki/index.md`,
+  and relevant pages
 - Do not create notes, write reports, save source files, update hot cache, or append to the log
 - If a workflow normally writes, explain that the bound wiki is read-only
 
@@ -54,7 +56,9 @@ When a bound wiki is configured:
 
 When a write happens in managed mode:
 
-1. Update the target wiki's `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md` as required by the workflow
+1. Update the target wiki's `wiki/index.md`, `wiki/log.md`,
+   `wiki/meta/context-state.json`, and `wiki/hot.md` as required by the
+   workflow
 2. Keep all writes inside `{WikiPath}`
 3. Never stage or commit wiki output in the current project's git repository
 4. Do not auto-commit the bound wiki repository by default

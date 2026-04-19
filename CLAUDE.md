@@ -57,7 +57,8 @@ Run "lint the wiki" every 10-15 ingests to catch orphans and gaps.
 Claude Code restores `wiki/hot.md` through `hooks/hooks.json` in local-vault
 mode. Other hosts do not share Claude's repo-local hook system, and even Claude
 should not rely on hooks for correctness in project-bound mode. The skill
-workflows are responsible for updating `wiki/index.md`, `wiki/log.md`, and
+workflows are responsible for updating `wiki/index.md`,
+`wiki/meta/context-state.json`, `wiki/log.md`, and then regenerating
 `wiki/hot.md` in the resolved wiki root.
 
 ## Project Binding
@@ -80,8 +81,10 @@ Examples:
 
 1. Read `{WikiPath}/CLAUDE.md` as the canonical wiki contract.
 2. Read `{WikiPath}/wiki/hot.md` first for recent context.
-3. If not enough, read `{WikiPath}/wiki/index.md`.
-4. If you need domain specifics, read the relevant sub-index or page inside
+3. If `hot.md` is missing, stale, or insufficient, read
+   `{WikiPath}/wiki/meta/context-state.json`.
+4. If not enough, read `{WikiPath}/wiki/index.md`.
+5. If you need domain specifics, read the relevant sub-index or page inside
    `{WikiPath}/wiki/`.
 
 `WikiMode: reference` means read-only access. `WikiMode: managed` allows wiki

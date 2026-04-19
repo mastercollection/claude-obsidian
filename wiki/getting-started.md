@@ -38,7 +38,7 @@ Tell Claude in any Claude Code session:
 ingest [filename]
 ```
 
-Claude reads the source, creates 8–15 wiki pages under `wiki/`, cross-references everything, and updates `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md`.
+Claude reads the source, creates 8–15 wiki pages under `wiki/`, cross-references everything, updates `wiki/index.md` and `wiki/log.md`, writes `wiki/meta/context-state.json`, and regenerates `wiki/hot.md`.
 
 ### 3. Ask questions
 
@@ -54,9 +54,11 @@ Claude reads the hot cache, scans the index, drills into relevant pages, and giv
 
 `wiki/hot.md` is a ~500-word summary of recent vault context. It loads automatically at the start of every session (via the SessionStart hook).
 
+`wiki/meta/context-state.json` is the machine-owned recent-state source of truth. `hot.md` is a generated cache derived from it.
+
 You don't need to recap. Claude starts every session knowing what you've been working on.
 
-Update it manually at any time: `update hot cache`
+Regenerate it manually at any time: `update hot cache`
 
 ---
 
@@ -82,7 +84,7 @@ After 3–5 ingests, the graph starts to look like a real knowledge network. Cro
 | `/save` | Files this conversation as a wiki note |
 | `/autoresearch [topic]` | Searches the web, ingests results autonomously |
 | `lint the wiki` | Health check — finds orphans, gaps, stale links |
-| `update hot cache` | Refreshes the session context summary |
+| `update hot cache` | Regenerates the session context summary from `context-state.json` |
 
 ---
 

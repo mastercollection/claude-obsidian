@@ -3,7 +3,8 @@ name: save
 description: >
   Save the current conversation, answer, or insight into the Obsidian wiki vault as a
   structured note. Analyzes the chat, determines the right note type, creates frontmatter,
-  files it in the correct wiki folder, and updates index, log, and hot cache.
+  files it in the correct wiki folder, and updates index, log, context state,
+  and the generated hot cache.
   Triggers on: "save this", "save that answer", "/save", "file this",
   "save to wiki", "save this session", "file this conversation", "keep this",
   "save this analysis", "add this to the wiki".
@@ -23,10 +24,11 @@ The wiki compounds. Save often.
 Before saving:
 
 1. Read `../wiki/references/project-binding.md`.
-2. Resolve the active wiki root.
-3. If `WikiMode` is `reference`, stop. `/save` writes to the wiki and is only
+2. Read `../wiki/references/context-state.md`.
+3. Resolve the active wiki root.
+4. If `WikiMode` is `reference`, stop. `/save` writes to the wiki and is only
    allowed in `managed` mode or local-vault mode.
-4. Treat every `wiki/...` path below as `{WikiPath}/wiki/...` when a project
+5. Treat every `wiki/...` path below as `{WikiPath}/wiki/...` when a project
    binding exists.
 
 ## Note Type Decision
@@ -63,8 +65,23 @@ If the user specifies a type, use that. If not, pick the best fit based on the c
    - Location: `{WikiPath}/wiki/[folder]/Note Title.md`
    - From: conversation on [brief topic description]
    ```
-9. **Update** `{WikiPath}/wiki/hot.md` to reflect the new addition.
-10. **Confirm**: "Saved as [[Note Title]] in `{WikiPath}/wiki/[folder]/`."
+9. **Upsert** `{WikiPath}/wiki/meta/context-state.json` using the saved note as
+   the stable identity. Store only compact metadata:
+   - `id`: stable id such as `save:[slug]`
+   - `source`: `save`
+   - `title` and `link`
+   - `summary`: one or two short lines
+   - `status`: default `active`
+   - `priority`: default `1`
+   - `session_key`: thread/session identifier if available, otherwise `manual`
+   - `created_at`, `updated_at`
+   - `expires_at`: default 3 days after `updated_at`
+   - `tags`: compact topical tags
+10. **Regenerate** `{WikiPath}/wiki/hot.md` from `context-state.json`. Never
+    update `hot.md` directly first.
+11. If the context-state upsert fails, stop and report a partial failure. Do not
+    rewrite `hot.md`.
+12. **Confirm**: "Saved as [[Note Title]] in `{WikiPath}/wiki/[folder]/`."
 
 ---
 

@@ -147,7 +147,7 @@ vault/
 ├── wiki/                   # Layer 2: LLM-generated knowledge base
 │   ├── index.md            # master catalog of all wiki pages
 │   ├── log.md              # chronological record of all operations
-│   ├── hot.md              # hot cache: recent context summary (~500 words)
+│   ├── hot.md              # generated hot cache: recent context summary (~500 words)
 │   ├── overview.md         # executive summary of the entire wiki
 │   ├── sources/            # one summary page per raw source
 │   ├── entities/           # people, orgs, products, repos
@@ -158,7 +158,7 @@ vault/
 │   │   └── _index.md
 │   ├── comparisons/        # side-by-side analyses
 │   ├── questions/          # filed answers to user queries
-│   └── meta/               # dashboards, lint reports, conventions
+│   └── meta/               # dashboards, lint reports, conventions, context state
 │
 ├── _templates/             # Templater templates
 ├── _attachments/           # images and PDFs referenced by wiki pages
@@ -182,7 +182,11 @@ vault/
 
 `wiki/hot.md` is a ~500-word summary of the most recent context. It exists so that other projects pointing at this vault can get recent context without crawling the full wiki.
 
+`wiki/meta/context-state.json` is the machine-owned source of truth for recent
+state. `hot.md` is derived from it and may be safely regenerated.
+
 Update hot.md after every ingest, after any significant query exchange, and at the end of every session.
+Update `context-state.json` before regenerating `hot.md`.
 
 Format:
 
@@ -442,8 +446,7 @@ Trigger: user drops a file into `.raw/` or pastes content.
 6. Update relevant domain pages and their `_index.md` sub-indexes.
 7. Update `wiki/overview.md` if the big picture changed.
 8. Update `wiki/index.md`. Add entries for all new pages.
-9. Update `wiki/hot.md` with this ingest's context.
-10. Append to `wiki/log.md` (new entries at the TOP):
+9. Append to `wiki/log.md` (new entries at the TOP):
     ```markdown
     ## [2026-04-07] ingest | Source Title
     - Source: `.raw/articles/filename.md`
@@ -452,7 +455,9 @@ Trigger: user drops a file into `.raw/` or pastes content.
     - Pages updated: [[Page 3]], [[Page 4]]
     - Key insight: One sentence on what is new.
     ```
-11. Check for contradictions. Flag with `> [!contradiction]` callouts on both pages.
+10. Update `wiki/meta/context-state.json` with a compact active summary item.
+11. Regenerate `wiki/hot.md` from `context-state.json`.
+12. Check for contradictions. Flag with `> [!contradiction]` callouts on both pages.
 
 A single source typically touches 8-15 wiki pages.
 
@@ -463,7 +468,8 @@ Trigger: user drops multiple files or says "ingest all of these."
 1. List all files to process. Confirm with user.
 2. Process each source following the single ingest flow. Defer cross-referencing.
 3. After all sources: cross-reference pass. Look for connections between new sources.
-4. Update index, hot cache, and log once at the end, not per source.
+4. Update index and log once at the end, then update `context-state.json` and
+   regenerate the hot cache once at the end, not per source.
 5. Report: "Processed N sources. Created X pages, updated Y pages. Key connections: ..."
 
 Batch ingest is less interactive. For 30+ sources, check in after every 10.
@@ -847,12 +853,13 @@ Your job as the LLM:
 1. Set up the vault (once)
 2. Scaffold wiki structure from user's domain description
 3. Ingest sources: read, summarize, cross-reference, file
-4. Maintain hot cache after every operation
+4. Maintain context state and regenerate the hot cache after every operation
 5. Answer questions using index > relevant pages > synthesis
 6. File good answers back into the wiki
 7. Lint periodically: find and fix health issues
 8. Never modify .raw/ sources
-9. Always update index, sub-indexes, log, and hot cache
+9. Always update index, sub-indexes, log, `meta/context-state.json`, and the
+   generated hot cache
 10. Always use frontmatter and wikilinks
 
 The human's job: curate sources, ask good questions, think about what it means. Everything else is on you.

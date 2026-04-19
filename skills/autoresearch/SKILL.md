@@ -24,10 +24,11 @@ This is based on Karpathy's autoresearch pattern: a configurable program defines
 Before starting:
 
 1. Read `../wiki/references/project-binding.md`.
-2. Resolve the active wiki root.
-3. If `WikiMode` is `reference`, stop. Autoresearch writes multiple pages and is
+2. Read `../wiki/references/context-state.md`.
+3. Resolve the active wiki root.
+4. If `WikiMode` is `reference`, stop. Autoresearch writes multiple pages and is
    only allowed in `managed` mode or local-vault mode.
-4. Treat every wiki path below as relative to the resolved wiki root.
+5. Treat every wiki path below as relative to the resolved wiki root.
 
 ## Before Starting
 
@@ -143,7 +144,11 @@ sources:
    - Synthesis: [[Research: Topic]]
    - Key finding: [one sentence]
    ```
-3. Update `{WikiPath}/wiki/hot.md` with the research summary
+3. Upsert `{WikiPath}/wiki/meta/context-state.json` with an active summary item
+   for the research topic. Use `source: autoresearch`, a stable id based on the
+   research page title, `priority: 2`, and `expires_at` 3 days after
+   `updated_at`.
+4. Regenerate `{WikiPath}/wiki/hot.md` from `context-state.json`
 
 ---
 

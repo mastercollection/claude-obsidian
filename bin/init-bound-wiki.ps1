@@ -32,6 +32,7 @@ $rawRoot = Join-Path $vault ".raw"
 $attachmentsRoot = Join-Path $vault "_attachments"
 $templatesRoot = Join-Path $vault "_templates"
 $claudeFile = Join-Path $vault "CLAUDE.md"
+$contextStateFile = Join-Path $wikiRoot "meta\context-state.json"
 
 function Ensure-Directory {
   param(
@@ -282,6 +283,7 @@ Purpose: $Purpose
 
 ## Current State
 - Wiki initialized and ready for ingest, query, save, lint, and autoresearch workflows.
+- `wiki/meta/context-state.json` stores structured recent-state data for hot-cache regeneration.
 
 ## Navigation
 - [[index]]
@@ -341,6 +343,34 @@ status: developing
 No domain notes have been created yet.
 "@
 
+$contextStateTimestamp = [DateTime]::UtcNow.ToString("o")
+$contextStateExpiry = [DateTime]::UtcNow.AddDays(3).ToString("o")
+$contextStateJson = @"
+{
+  "version": 1,
+  "updated_at": "$contextStateTimestamp",
+  "items": [
+    {
+      "id": "system:wiki-initialized",
+      "source": "manual",
+      "title": "Wiki initialized",
+      "link": "[[overview]]",
+      "summary": "Standard claude-obsidian bound wiki structure initialized.",
+      "status": "active",
+      "priority": 1,
+      "session_key": "bootstrap",
+      "created_at": "$contextStateTimestamp",
+      "updated_at": "$contextStateTimestamp",
+      "expires_at": "$contextStateExpiry",
+      "tags": [
+        "bootstrap",
+        "wiki"
+      ]
+    }
+  ]
+}
+"@
+
 $claudeMd = @"
 # $WikiName
 
@@ -366,7 +396,8 @@ Do not redefine the core vault schema here.
 - `.raw/` stores immutable source material.
 - `wiki/index.md` is the master catalog and should be updated on write workflows.
 - `wiki/log.md` is append-only with newest entries at the top.
-- `wiki/hot.md` is a rolling cache and should be overwritten, not appended.
+- `wiki/meta/context-state.json` is the structured recent-state source of truth.
+- `wiki/hot.md` is a generated rolling cache and should be regenerated from context state, not appended.
 - Bound projects should resolve this file before running wiki workflows.
 
 ## Conventions
@@ -381,6 +412,7 @@ Write-FileIfMissing -Path (Join-Path $wikiRoot "index.md") -Content $indexMd
 Write-FileIfMissing -Path (Join-Path $wikiRoot "log.md") -Content $logMd
 Write-FileIfMissing -Path (Join-Path $wikiRoot "hot.md") -Content $hotMd
 Write-FileIfMissing -Path (Join-Path $wikiRoot "overview.md") -Content $overviewMd
+Write-FileIfMissing -Path $contextStateFile -Content $contextStateJson
 Write-FileIfMissing -Path (Join-Path $wikiRoot "concepts\_index.md") -Content $conceptsIndex
 Write-FileIfMissing -Path (Join-Path $wikiRoot "entities\_index.md") -Content $entitiesIndex
 Write-FileIfMissing -Path (Join-Path $wikiRoot "domains\_index.md") -Content $domainsIndex

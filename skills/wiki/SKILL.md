@@ -46,7 +46,7 @@ Standard wiki structure:
 wiki/
 ├── index.md            # master catalog of all pages
 ├── log.md              # chronological record of all operations
-├── hot.md              # hot cache: recent context summary (~500 words)
+├── hot.md              # generated hot cache: recent context summary (~500 words)
 ├── overview.md         # executive summary of the whole wiki
 ├── sources/            # one summary page per raw source
 ├── entities/           # people, orgs, products, repos
@@ -57,7 +57,7 @@ wiki/
 │   └── _index.md
 ├── comparisons/        # side-by-side analyses
 ├── questions/          # filed answers to user queries
-└── meta/               # dashboards, lint reports, conventions
+└── meta/               # dashboards, lint reports, conventions, context state
 ```
 
 Dot-prefixed folders (`.raw/`) are hidden in Obsidian's file explorer and graph view. Use this for source documents.
@@ -70,10 +70,18 @@ Dot-prefixed folders (`.raw/`) are hidden in Obsidian's file explorer and graph 
 exists so any session (or any other project bound to this vault) can get recent
 context without crawling the full wiki.
 
+It is a generated cache, not the source of truth. The canonical recent-state
+store is `<vault-root>/wiki/meta/context-state.json`. Read
+`references/context-state.md` for the structure and generation rules.
+
 Update hot.md:
 - After every ingest
 - After any significant query exchange
 - At the end of every session
+
+Write workflows must update `context-state.json` first and regenerate `hot.md`
+from that file. Do not treat `hot.md` as an append-only journal or manually
+maintained source of truth.
 
 Format:
 ```markdown
@@ -140,7 +148,8 @@ Steps:
 6. If no binding exists but the current directory is the vault, create the full
    folder structure under `<vault-root>/wiki/` based on the mode.
 7. Create domain pages + `_index.md` sub-indexes.
-8. Create `<vault-root>/wiki/index.md`, `log.md`, `hot.md`, `overview.md`.
+8. Create `<vault-root>/wiki/index.md`, `log.md`, `hot.md`, `overview.md`, and
+   `meta/context-state.json`.
 9. Create `<vault-root>/_templates/` files for each note type.
 10. Apply visual customization. Read `references/css-snippets.md`. Create
    `<vault-root>/.obsidian/snippets/vault-colors.css`.
@@ -204,9 +213,11 @@ Then resolve the workflow like this:
 
 1. Read `{WikiPath}/CLAUDE.md` as the canonical wiki contract.
 2. Read `{WikiPath}/wiki/hot.md` first (recent context, ~500 words).
-3. If not enough, read `{WikiPath}/wiki/index.md`.
-4. If you need domain specifics, read the relevant `{WikiPath}/wiki/<domain>/_index.md`.
-5. Only then read individual wiki pages.
+3. If `hot.md` looks stale or incomplete, read
+   `{WikiPath}/wiki/meta/context-state.json`.
+4. If not enough, read `{WikiPath}/wiki/index.md`.
+5. If you need domain specifics, read the relevant `{WikiPath}/wiki/<domain>/_index.md`.
+6. Only then read individual wiki pages.
 
 Examples:
 
@@ -228,8 +239,9 @@ Your job as the LLM:
 2. Set up the vault (once)
 3. Scaffold wiki structure from user's domain description
 4. Route ingest, query, and lint to the correct sub-skill
-5. Maintain hot cache after every operation
-6. Always update index, sub-indexes, log, and hot cache on changes
+5. Maintain context state and regenerate the hot cache after every operation
+6. Always update index, sub-indexes, log, `meta/context-state.json`, and the
+   generated hot cache on changes
 7. Always use frontmatter and wikilinks
 8. Never modify `.raw/` sources
 9. Never create or commit wiki files inside the current project when it is bound

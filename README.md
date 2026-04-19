@@ -32,7 +32,8 @@ On Claude Code, repo-local hooks can refresh the hot cache at session boundaries
 when the current directory is itself the wiki vault. In project-bound mode,
 hooks are only a convenience layer. Codex and other hosts restore the same
 `wiki/hot.md` cache through bootstrap instructions, and the wiki workflows
-themselves are responsible for maintaining it.
+themselves are responsible for maintaining `wiki/index.md`,
+`wiki/meta/context-state.json`, `wiki/log.md`, and the generated `wiki/hot.md`.
 
 <p align="center">
   <img src="wiki/meta/image-example-graph-view.png" alt="Graph view. Color-coded wiki nodes" width="48%" />
@@ -165,7 +166,7 @@ Then scaffold the full wiki structure.
 | `/canvas zone [name]` | Add a new labeled zone to organize visual content |
 | `/canvas from banana` | Capture recently generated images onto the canvas |
 | `lint the wiki` | Health check: orphans, dead links, gaps, suggestions |
-| `update hot cache` | Refresh hot.md with latest context summary |
+| `update hot cache` | Regenerate hot.md from `wiki/meta/context-state.json` |
 
 > **Want more?** [claude-canvas](https://github.com/AgriciDaniel/claude-canvas) adds 12 templates, 6 layout algorithms, AI image generation, presentations, and full canvas orchestration. Install both — they complement each other.
 
@@ -194,8 +195,10 @@ Then the host should:
 
 1. Read `{WikiPath}/CLAUDE.md` as the canonical wiki contract
 2. Read `{WikiPath}/wiki/hot.md` first
-3. If not enough, read `{WikiPath}/wiki/index.md`
-4. Only then drill into specific wiki pages inside `{WikiPath}/wiki/`
+3. If recent-state recovery or structured active context is needed, read
+   `{WikiPath}/wiki/meta/context-state.json`
+4. If not enough, read `{WikiPath}/wiki/index.md`
+5. Only then drill into specific wiki pages inside `{WikiPath}/wiki/`
 
 Mode semantics:
 
@@ -246,7 +249,8 @@ A typical scaffold creates:
 - Folder structure for your chosen mode
 - `wiki/index.md`: master catalog
 - `wiki/log.md`: append-only operation log
-- `wiki/hot.md`: recent context cache
+- `wiki/hot.md`: generated recent context cache
+- `wiki/meta/context-state.json`: structured recent-state source of truth
 - `wiki/overview.md`: executive summary
 - `wiki/meta/dashboard.base`: Bases dashboard (primary, native Obsidian)
 - `wiki/meta/dashboard.md`: Legacy Dataview dashboard (optional fallback)
@@ -358,7 +362,7 @@ claude-obsidian/
 │   ├── plugin.json              # manifest
 │   └── marketplace.json         # distribution
 ├── skills/
-│   ├── wiki/                    # orchestrator + references (7 ref files)
+│   ├── wiki/                    # orchestrator + references
 │   ├── wiki-ingest/             # INGEST operation
 │   ├── wiki-query/              # QUERY operation
 │   ├── wiki-lint/               # LINT operation
@@ -384,10 +388,15 @@ claude-obsidian/
 │   ├── Wiki Map.canvas          # visual hub, central graph node
 │   ├── canvases/                # welcome.canvas + main.canvas (visual demos)
 │   ├── getting-started.md       # onboarding walkthrough (inside the vault)
+│   ├── hot.md                   # generated recent context cache
+│   ├── index.md                 # master catalog
+│   ├── log.md                   # append-only audit log
+│   ├── overview.md              # executive summary
 │   ├── concepts/                # seeded: LLM Wiki Pattern, Hot Cache, Compounding Knowledge
 │   ├── entities/                # seeded: Andrej Karpathy
 │   ├── sources/                 # populated by your first ingest
 │   └── meta/
+│       ├── context-state.json   # structured recent-state source of truth
 │       ├── dashboard.base       # Bases dashboard (primary)
 │       └── dashboard.md         # Legacy Dataview dashboard (optional)
 ├── .raw/                        # source documents (hidden in Obsidian)

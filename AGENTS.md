@@ -7,14 +7,16 @@ Read `CLAUDE.md` first. Use this file only for Codex-specific behavior:
 
 1. Resolve wiki binding first. If the current project declares `WikiMode` and
    `WikiPath`, read `{WikiPath}/CLAUDE.md` first and then `{WikiPath}/wiki/hot.md`.
+   If the hot cache looks stale or incomplete, read
+   `{WikiPath}/wiki/meta/context-state.json`.
    Otherwise, if the current directory is itself the vault, read local
    `CLAUDE.md` and `wiki/hot.md`.
 2. Codex does **not** consume this repo's Claude lifecycle hooks from
    `hooks/hooks.json`. Treat those hooks as Claude-only adapter behavior.
 3. For wiki workflows (`ingest`, `query`, `lint`, `save`, `autoresearch`, `canvas`),
    follow the relevant skill instructions against the resolved wiki root so the
-   same wiki artifacts are maintained: `wiki/index.md`, `wiki/log.md`, and
-   `wiki/hot.md`.
+   same wiki artifacts are maintained: `wiki/index.md`,
+   `wiki/meta/context-state.json`, `wiki/log.md`, and `wiki/hot.md`.
 4. `allowed-tools` in `SKILL.md` frontmatter are intentionally retained as
    vendor-specific hints. They are not the portable core of the Agent Skills format.
 5. If the current project is bound to another wiki, do not create or commit
@@ -76,6 +78,7 @@ bash bin/setup-multi-agent.sh
 
 - **Vault root**: the resolved `WikiPath`, or the current directory if it already contains `wiki/` and `.raw/`
 - **Hot cache**: `<vault-root>/wiki/hot.md` (read first for recent context)
+- **Context state**: `<vault-root>/wiki/meta/context-state.json` (machine-owned recent-state source of truth)
 - **Source documents**: `.raw/` (immutable: agents never modify these)
 - **Generated knowledge**: `wiki/` (agent-owned, links to sources via wikilinks)
 - **Manifest**: `.raw/.manifest.json` tracks ingested sources (delta tracking)
@@ -88,7 +91,8 @@ When the user opens this project for the first time:
 2. Read this file for Codex-specific adapter notes
 3. Read `skills/wiki/SKILL.md` for the orchestration pattern
 4. If a project binding exists, read the bound wiki's `CLAUDE.md` and
-   `wiki/hot.md` silently to restore recent context. Otherwise, if the current
+   `wiki/hot.md` silently to restore recent context. If the hot cache is stale
+   or incomplete, read `wiki/meta/context-state.json`. Otherwise, if the current
    directory is the vault, read local `wiki/hot.md`.
 5. If the user types `/wiki` or says "set up wiki", follow the wiki skill's scaffold workflow
 
