@@ -109,6 +109,7 @@ Keep the git boundary clean:
 | `/save` | File the current conversation as a structured wiki note |
 | `/autoresearch [topic]` | Autonomous research loop: search, fetch, synthesize, file |
 | `/canvas` | Visual layer: add images, PDFs, notes to Obsidian canvas |
+| `backup wiki` | Commit or push the resolved wiki repository without touching the project repo |
 
 ## MCP (Optional)
 

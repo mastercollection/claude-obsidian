@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Backup"
+  short_description: "Commit or push the resolved wiki repo safely"
+  default_prompt: "Use this skill to back up the resolved wiki repository without touching the project repo."

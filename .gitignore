@@ -32,6 +32,7 @@ node_modules/
 .env
 .env.local
 *.local.md
+.claude/
 
 # Personal files dropped into vault root by Obsidian (don't commit these)
 WIKI*.md

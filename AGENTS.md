@@ -70,6 +70,7 @@ bash bin/setup-multi-agent.sh
 | `save` | /save, file this conversation |
 | `autoresearch` | autoresearch, autonomous research loop |
 | `canvas` | /canvas, add to canvas, create canvas |
+| `wiki-backup` | backup wiki, commit wiki, push wiki, sync wiki |
 | `defuddle` | clean this url, defuddle |
 | `obsidian-markdown` | obsidian syntax, wikilink, callout |
 | `obsidian-bases` | obsidian bases, .base file, dynamic table |
