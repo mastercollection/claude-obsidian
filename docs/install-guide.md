@@ -111,8 +111,11 @@ Claude reads the hot cache, scans the index, drills into relevant pages, and giv
 | `what do you know about X?` | Read index → relevant pages → synthesize answer |
 | `/save` | File the current conversation as a wiki note |
 | `/save [name]` | Save with a specific title |
+| `/codex-save [request]` | In Claude Code, hand off wiki save work to the local Codex CLI |
 | `/autoresearch [topic]` | Autonomous research loop: search, fetch, synthesize, file |
 | `/canvas` | Open or create a visual canvas |
+| `/codex-wiki [request]` | In Claude Code, hand off wiki work to the local Codex CLI |
+| `/codex-backup [request]` | In Claude Code, hand off wiki backup work to the local Codex CLI |
 | `/canvas add image [path]` | Add an image to the canvas |
 | `/canvas add text [content]` | Add a markdown text card |
 | `/canvas add pdf [path]` | Add a PDF document |

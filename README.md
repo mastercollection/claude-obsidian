@@ -157,8 +157,11 @@ Then scaffold the full wiki structure.
 | `what do you know about X?` | Read index > relevant pages > synthesize answer |
 | `/save` | File the current conversation as a wiki note |
 | `/save [name]` | Save with a specific title (skips the naming question) |
+| `/codex-save [request]` | Hand off wiki save work to the local Codex CLI and return Codex stdout |
 | `/autoresearch [topic]` | Run the autonomous research loop: search, fetch, synthesize, file |
 | `/canvas` | Open or create the visual canvas, list zones and nodes |
+| `/codex-wiki [request]` | Hand off wiki work to the local Codex CLI and return Codex stdout |
+| `/codex-backup [request]` | Hand off wiki backup work to the local Codex CLI and return Codex stdout |
 | `/canvas add image [path]` | Add an image (URL or local path) to the canvas with auto-layout |
 | `/canvas add text [content]` | Add a markdown text card to the canvas |
 | `/canvas add pdf [path]` | Add a PDF document as a rendered preview node |
@@ -379,6 +382,9 @@ claude-obsidian/
 ├── commands/
 │   ├── wiki.md                  # /wiki bootstrap command
 │   ├── save.md                  # /save command
+│   ├── codex-save.md            # /codex-save Codex handoff
+│   ├── codex-wiki.md            # /codex-wiki Codex handoff
+│   ├── codex-backup.md          # /codex-backup Codex handoff
 │   ├── autoresearch.md          # /autoresearch command
 │   └── canvas.md                # /canvas visual layer command
 ├── hooks/
