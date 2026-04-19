@@ -1,6 +1,9 @@
 # claude-obsidian: GitHub Copilot Instructions
 
-This repository is a **Claude Code plugin and Obsidian vault** that builds persistent, compounding knowledge bases using Andrej Karpathy's LLM Wiki pattern. It is markdown-only. No build step, no compiled code, no runtime dependencies.
+This repository is a **Claude Code plugin and Obsidian vault** with additional
+host adapters such as `AGENTS.md` and `GEMINI.md`. It builds persistent,
+compounding knowledge bases using Andrej Karpathy's LLM Wiki pattern. It is
+markdown-only. No build step, no compiled code, no runtime dependencies.
 
 ## Project Type
 
@@ -11,7 +14,7 @@ This repository is a **Claude Code plugin and Obsidian vault** that builds persi
 ## Repository Layout
 
 - `skills/`: 10 skills, each with a `SKILL.md` defining trigger phrases and instructions
-- `hooks/hooks.json`: Claude Code lifecycle hooks (SessionStart, PostCompact, PostToolUse, Stop)
+- `hooks/hooks.json`: Claude Code lifecycle hooks (SessionStart, PostCompact, PostToolUse, Stop). These are a Claude-specific adapter layer, not the cross-platform core workflow.
 - `.claude-plugin/plugin.json`: plugin manifest
 - `wiki/`: generated knowledge base (Markdown files with YAML frontmatter)
 - `.raw/`: immutable source documents (never modify)
@@ -28,14 +31,15 @@ When suggesting edits:
 4. **`.raw/` is immutable**. Never suggest edits to anything under that path
 5. **`wiki/log.md` is append-only**, with new entries at the top
 6. **`wiki/hot.md` is overwritten** at session end, not appended to
-7. **Skills use only `name` and `description` in frontmatter**. No `allowed-tools`, no `triggers`, no `globs` (these are not part of the Agent Skills spec)
+7. **Skills must keep `name` and `description` in frontmatter**. This repo also intentionally retains `allowed-tools` as a vendor-specific hint. Do not remove it unless explicitly asked.
 8. **Custom callouts**: this vault defines `[!contradiction]`, `[!gap]`, `[!key-insight]`, `[!stale]` in `.obsidian/snippets/vault-colors.css`. These render only with that snippet enabled.
 
 ## When Editing Skills (`skills/<name>/SKILL.md`)
 
 - Frontmatter: `name` (matches directory name) and `description` (single quoted line, max ~250 useful chars)
+- `allowed-tools` may be present as a host hint; preserve it
 - Body: short, imperative instructions. Reference files with backticks. Do not paste large code blocks unless they're essential.
-- Trigger phrases go in the `description` field, not in body or non-standard fields
+- Trigger phrases go in the `description` field, not in body or additional metadata fields unless the repo already uses them
 
 ## When Editing Hooks (`hooks/hooks.json`)
 

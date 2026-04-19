@@ -22,13 +22,13 @@ Based on [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/4
   <img src="wiki/meta/welcome-canvas.gif" alt="Welcome canvas. Visual demo board" width="96%" />
 </p>
 
-You drop sources. Claude reads them, extracts entities and concepts, updates cross-references, and files everything into a structured Obsidian vault. The wiki gets richer with every ingest.
+You drop sources. The active agent reads them, extracts entities and concepts, updates cross-references, and files everything into a structured Obsidian vault. The wiki gets richer with every ingest.
 
-You ask questions. Claude reads the hot cache (recent context), scans the index, drills into relevant pages, and synthesizes an answer. It cites specific wiki pages, not training data.
+You ask questions. The active agent reads the hot cache (recent context), scans the index, drills into relevant pages, and synthesizes an answer. It cites specific wiki pages, not training data.
 
-You lint. Claude finds orphans, dead links, stale claims, and missing cross-references. Your wiki stays healthy without manual cleanup.
+You lint. The active agent finds orphans, dead links, stale claims, and missing cross-references. Your wiki stays healthy without manual cleanup.
 
-At the end of every session, Claude updates a hot cache. The next session starts with full recent context, no recap needed.
+On Claude Code, repo-local hooks refresh the hot cache at session boundaries. On Codex and other hosts, the same `wiki/hot.md` cache is restored through bootstrap instructions and maintained by the wiki workflows themselves.
 
 <p align="center">
   <img src="wiki/meta/image-example-graph-view.png" alt="Graph view. Color-coded wiki nodes" width="48%" />
@@ -58,6 +58,18 @@ Most Obsidian AI plugins are chat interfaces - they answer questions about your 
 
 ---
 
+## Adapter Model
+
+The repo is split into a cross-host wiki core plus thin host adapters:
+
+- **Core**: `skills/`, `commands/`, `wiki/`, `.raw/`, and the Obsidian vault schema
+- **Claude adapter**: `.claude-plugin/`, `hooks/`, and `CLAUDE.md`
+- **Codex adapter**: `AGENTS.md` plus `codex mcp ...` configuration
+
+This matters because Claude Code supports repo-local lifecycle hooks, while Codex does not. Codex aims for best-effort parity by following the same skill workflows and restoring the same hot cache, but it does not consume `hooks/hooks.json`.
+
+---
+
 ## Quick Start
 
 ### Option 1: Clone as vault (recommended: full setup in 2 minutes)
@@ -68,11 +80,22 @@ cd claude-obsidian
 bash bin/setup-vault.sh
 ```
 
+On Windows PowerShell:
+
+```powershell
+git clone https://github.com/AgriciDaniel/claude-obsidian
+cd claude-obsidian
+pwsh -File .\bin\setup-vault.ps1
+```
+
 Open the folder in Obsidian: **Manage Vaults → Open folder as vault → select `claude-obsidian/`**
 
-Open Claude Code in the same folder. Type `/wiki`.
+Open Claude Code or Codex in the same folder.
 
-> `setup-vault.sh` configures `graph.json` (filter + colors), `app.json` (excludes plugin dirs), and `appearance.json` (enables CSS). Run it once before the first Obsidian open. You get the fully pre-configured graph view, color scheme, and wiki structure out of the box.
+- Claude Code: type `/wiki`
+- Codex: ask it to read `AGENTS.md` and `CLAUDE.md`, then say `set up wiki`
+
+> `setup-vault.sh` and `setup-vault.ps1` configure `graph.json` (filter + colors), `app.json` (excludes plugin dirs), and `appearance.json` (enables CSS). Run one of them once before the first Obsidian open. You get the fully pre-configured graph view, color scheme, and wiki structure out of the box.
 
 ---
 
@@ -99,7 +122,7 @@ claude plugin list
 
 ### Option 3: Add to an existing vault
 
-Copy `WIKI.md` into your vault root. Paste into Claude:
+Copy `WIKI.md` into your vault root. Paste into Claude Code or Codex:
 
 ```
 Read WIKI.md in this project. Then:
@@ -114,7 +137,7 @@ Then scaffold the full wiki structure.
 
 ## Commands
 
-| You say | Claude does |
+| You say | Agent does |
 |---------|------------|
 | `/wiki` | Setup check, scaffold, or continue where you left off |
 | `ingest [file]` | Read source, create 8-15 wiki pages, update index and log |
@@ -135,11 +158,15 @@ Then scaffold the full wiki structure.
 
 > **Want more?** [claude-canvas](https://github.com/AgriciDaniel/claude-canvas) adds 12 templates, 6 layout algorithms, AI image generation, presentations, and full canvas orchestration. Install both — they complement each other.
 
+Claude Code can invoke slash commands directly. Codex and other AGENTS-compatible
+hosts typically trigger the same skills from natural language prompts instead.
+
 ---
 
 ## Cross-Project Power Move
 
-Point any Claude Code project at this vault. Add to that project's `CLAUDE.md`:
+Point any Claude Code or Codex project at this vault. Add the following guidance to
+that project's `CLAUDE.md` or `AGENTS.md`:
 
 ```markdown
 ## Wiki Knowledge Base
@@ -191,33 +218,30 @@ A typical scaffold creates:
 
 ## MCP Setup (Optional)
 
-MCP lets Claude read and write vault notes directly without copy-paste.
+MCP lets supported agents read and write vault notes directly without copy-paste.
+
+Claude Code examples use `claude mcp ...`. Codex examples use `codex mcp ...`.
+The full host-specific setup guide lives in `skills/wiki/references/mcp-setup.md`.
 
 Option A (REST API based):
 1. Install the Local REST API plugin in Obsidian
 2. Copy your API key
 3. Run:
 ```bash
-claude mcp add-json obsidian-vault '{
-  "type": "stdio",
-  "command": "uvx",
-  "args": ["mcp-obsidian"],
-  "env": {
-    "OBSIDIAN_API_KEY": "your-key",
-    "OBSIDIAN_HOST": "127.0.0.1",
-    "OBSIDIAN_PORT": "27124",
-    "NODE_TLS_REJECT_UNAUTHORIZED": "0"
-  }
-}' --scope user
+# Claude Code
+claude mcp add-json ...
+
+# Codex
+codex mcp add ... obsidian-vault -- uvx mcp-obsidian
 ```
 
 Option B (filesystem based, no plugin needed):
 ```bash
-claude mcp add-json obsidian-vault '{
-  "type": "stdio",
-  "command": "npx",
-  "args": ["-y", "@bitbonsai/mcpvault@latest", "/path/to/your/vault"]
-}' --scope user
+# Claude Code
+claude mcp add-json ...
+
+# Codex
+codex mcp add obsidian-vault -- npx -y @bitbonsai/mcpvault@latest /path/to/your/vault
 ```
 
 ---
@@ -243,7 +267,7 @@ Enable in **Settings → Community Plugins → enable**:
 | **Excalidraw** | Freehand drawing canvas, annotate images | Pre-installed* |
 | **Banners** | Notion-style header image via `banner:` frontmatter | Pre-installed |
 
-\* Excalidraw `main.js` (8MB) is downloaded automatically by `setup-vault.sh`. It is not tracked in git.
+\* Excalidraw `main.js` (8MB) is downloaded automatically by the setup script. It is not tracked in git.
 
 ### Also install from Community Plugins (not pre-installed)
 
@@ -257,7 +281,7 @@ Also install the **[Obsidian Web Clipper](https://obsidian.md/clipper)** browser
 
 ---
 
-## CSS Snippets (auto-enabled by setup-vault.sh)
+## CSS Snippets (auto-enabled by the setup scripts)
 
 Three snippets ship with the vault and are enabled automatically:
 
@@ -310,7 +334,7 @@ claude-obsidian/
 │   ├── autoresearch.md          # /autoresearch command
 │   └── canvas.md                # /canvas visual layer command
 ├── hooks/
-│   └── hooks.json               # SessionStart + Stop hot cache hooks
+│   └── hooks.json               # Claude-only lifecycle hooks
 ├── _templates/                  # Obsidian Templater templates
 ├── wiki/
 │   ├── Wiki Map.canvas          # visual hub, central graph node
@@ -325,7 +349,9 @@ claude-obsidian/
 ├── .raw/                        # source documents (hidden in Obsidian)
 ├── .obsidian/snippets/          # vault-colors.css (3-color scheme)
 ├── WIKI.md                      # full schema reference
-├── CLAUDE.md                    # project instructions
+├── CLAUDE.md                    # canonical repo instructions
+├── AGENTS.md                    # Codex / AGENTS wrapper
+├── GEMINI.md                    # Gemini wrapper
 └── README.md                    # this file
 ```
 

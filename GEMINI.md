@@ -1,6 +1,9 @@
 # claude-obsidian: Gemini CLI Instructions
 
-This repo is a knowledge base companion that builds persistent, compounding Obsidian wiki vaults using Andrej Karpathy's LLM Wiki pattern. The skills are written in the cross-platform Agent Skills format and work in Gemini CLI / Antigravity alongside Claude Code.
+This file is the Gemini-facing wrapper for the canonical repo instructions in
+`CLAUDE.md`.
+
+Read `CLAUDE.md` first. Use this file for Gemini-specific bootstrap only.
 
 ## Skills Discovery
 
@@ -48,13 +51,18 @@ bash bin/setup-multi-agent.sh
 - `wiki/hot.md`: recent context cache (~500 tokens), read first at session start
 - `wiki/index.md`: master catalog
 - `.raw/.manifest.json`: delta tracking for ingest
+- `allowed-tools`: vendor-specific skill hints retained intentionally; do not treat them as the portable core of the Agent Skills format
 
 ## Bootstrap
 
 On first session:
-1. Read this file + the project `CLAUDE.md`
-2. If `wiki/hot.md` exists, silently read it to restore recent context
-3. Wait for user to type `/wiki` or `ingest` or `query`
+1. Read `CLAUDE.md` for canonical repo behavior
+2. Read this file for Gemini-specific bootstrap
+3. If `wiki/hot.md` exists, silently read it to restore recent context
+4. Gemini does not share Claude Code's repo-local hook system; follow the skill
+   instructions to keep `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md` in sync
+   during wiki workflows
+5. Wait for user to type `/wiki` or `ingest` or `query`
 
 ## Project Links
 
