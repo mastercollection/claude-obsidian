@@ -11,6 +11,13 @@ Four options are listed below, ordered from simplest to most featureful.
 > [!tip] Recommendation
 > If you have **Obsidian v1.12 or newer**, start with **Option D: Obsidian CLI**. It needs no MCP server, no plugins, and no TLS workarounds. It is also the most portable option across Claude Code, Codex, and other hosts. Use Options A or B only if you need persistent MCP integration or are on an older Obsidian version.
 
+> [!note] Filesystem-first for local bindings
+> If a project declares a local `WikiPath` such as
+> `<ABSOLUTE_PATH_TO_WIKI>`, the default path is direct filesystem access
+> against that folder. Example `WikiPath` values: `C:\Wiki_A` on Windows or
+> `/Users/name/Wiki_A` on macOS/Linux. MCP is optional transport for host
+> integration, not the primary correctness path for project-bound local wikis.
+
 ---
 
 ## Step 1: Install the Local REST API Plugin

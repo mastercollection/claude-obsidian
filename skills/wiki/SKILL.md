@@ -3,7 +3,7 @@ name: wiki
 description: >
   Claude + Obsidian knowledge companion. Sets up a persistent wiki vault, scaffolds
   structure from a one-sentence description, and routes to specialized sub-skills.
-  Use for setup, scaffolding, cross-project referencing, and hot cache management.
+  Use for setup, scaffolding, project-bound wiki workflows, and hot cache management.
   Triggers on: "set up wiki", "scaffold vault", "create knowledge base", "/wiki",
   "wiki setup", "obsidian vault", "knowledge base", "second brain setup",
   "running notetaker", "persistent memory", "llm wiki".
@@ -25,11 +25,20 @@ The key difference from RAG: the wiki is a persistent artifact. Cross-references
 Three layers:
 
 ```
-vault/
+<vault-root>/
 ├── .raw/       # Layer 1: immutable source documents
 ├── wiki/       # Layer 2: LLM-generated knowledge base
 └── CLAUDE.md   # Layer 3: schema and instructions (this plugin)
 ```
+
+`<vault-root>` is not always the current project directory. Resolve it first using
+`references/project-binding.md`:
+
+- If the current project declares `WikiMode` and `WikiPath`, operate on that
+  bound wiki root.
+- Otherwise, if the current directory contains both `wiki/` and `.raw/`, treat
+  the current directory as the local vault root.
+- Otherwise, there is no active wiki yet.
 
 Standard wiki structure:
 
@@ -57,7 +66,9 @@ Dot-prefixed folders (`.raw/`) are hidden in Obsidian's file explorer and graph 
 
 ## Hot Cache
 
-`wiki/hot.md` is a ~500-word summary of the most recent context. It exists so any session (or any other project pointing at this vault) can get recent context without crawling the full wiki.
+`<vault-root>/wiki/hot.md` is a ~500-word summary of the most recent context. It
+exists so any session (or any other project bound to this vault) can get recent
+context without crawling the full wiki.
 
 Update hot.md:
 - After every ingest
@@ -117,20 +128,31 @@ Trigger: user describes what the vault is for.
 
 Steps:
 
-1. Determine the wiki mode. Read `references/modes.md` to show the 6 options and pick the best fit.
-2. Ask: "What is this vault for?" (one question, then proceed).
-3. Create full folder structure under `wiki/` based on the mode.
-4. Create domain pages + `_index.md` sub-indexes.
-5. Create `wiki/index.md`, `wiki/log.md`, `wiki/hot.md`, `wiki/overview.md`.
-6. Create `_templates/` files for each note type.
-7. Apply visual customization. Read `references/css-snippets.md`. Create `.obsidian/snippets/vault-colors.css`.
-8. Create the vault CLAUDE.md using the template below.
-9. Initialize git. Read `references/git-setup.md`.
-10. Present the structure and ask: "Want to adjust anything before we start?"
+1. Resolve the active wiki root using `references/project-binding.md`.
+2. Determine the wiki mode. Read `references/modes.md` to show the 6 options and pick the best fit.
+3. Ask: "What is this vault for?" (one question, then proceed).
+4. If the current project is already bound to `WikiPath` and `WikiMode` is
+   `managed`, scaffold or repair that bound wiki root. Do not create `wiki/` or
+   `.raw/` in the current project.
+5. If the current project is bound to `WikiPath` but `WikiMode` is `reference`,
+   do not scaffold. Explain that read-only bindings can inspect the wiki but
+   cannot initialize or repair it.
+6. If no binding exists but the current directory is the vault, create the full
+   folder structure under `<vault-root>/wiki/` based on the mode.
+7. Create domain pages + `_index.md` sub-indexes.
+8. Create `<vault-root>/wiki/index.md`, `log.md`, `hot.md`, `overview.md`.
+9. Create `<vault-root>/_templates/` files for each note type.
+10. Apply visual customization. Read `references/css-snippets.md`. Create
+   `<vault-root>/.obsidian/snippets/vault-colors.css`.
+11. Create the vault `CLAUDE.md` using the template below.
+12. Initialize git only if the vault root itself is meant to be a git repo. Do
+    not initialize or commit the current project repo just because it points at a
+    separate wiki. Read `references/git-setup.md`.
+13. Present the structure and ask: "Want to adjust anything before we start?"
 
 ### Vault CLAUDE.md Template
 
-Create this file in the vault root when scaffolding a new project vault (not this plugin directory):
+Create this file in the resolved vault root when scaffolding a new project wiki:
 
 ```markdown
 # [WIKI NAME]: LLM Wiki
@@ -148,6 +170,8 @@ Created: YYYY-MM-DD
 
 - All notes use YAML frontmatter: type, status, created, updated, tags (minimum)
 - Wikilinks use [[Note Name]] format: filenames are unique, no paths needed
+- Exception: folder-local `_index.md` files may repeat and should be linked with
+  folder-qualified wikilinks such as `[[concepts/_index|Concepts Index]]`
 - .raw/ contains source documents: never modify them
 - wiki/index.md is the master catalog: update on every ingest
 - wiki/log.md is append-only: never edit past entries
@@ -163,42 +187,53 @@ Created: YYYY-MM-DD
 
 ---
 
-## Cross-Project Referencing
+## Project Binding
 
-This is the force multiplier. Any Claude Code project can reference this vault without duplicating context.
+This is the force multiplier. Any project can bind to a specific wiki without
+duplicating context.
 
-In another project's CLAUDE.md, add:
+In the project's `AGENTS.md` or `CLAUDE.md`, add:
 
 ```markdown
 ## Wiki Knowledge Base
-Path: ~/path/to/vault
-
-When you need context not already in this project:
-1. Read wiki/hot.md first (recent context, ~500 words)
-2. If not enough, read wiki/index.md (full catalog)
-3. If you need domain specifics, read wiki/<domain>/_index.md
-4. Only then read individual wiki pages
-
-Do NOT read the wiki for:
-- General coding questions or language syntax
-- Things already in this project's files or conversation
-- Tasks unrelated to [your domain]
+WikiMode: managed
+WikiPath: <ABSOLUTE_PATH_TO_WIKI>
 ```
 
-This keeps token usage low. Hot cache costs ~500 tokens. Index costs ~1000 tokens. Individual pages cost 100-300 tokens each.
+Then resolve the workflow like this:
+
+1. Read `{WikiPath}/CLAUDE.md` as the canonical wiki contract.
+2. Read `{WikiPath}/wiki/hot.md` first (recent context, ~500 words).
+3. If not enough, read `{WikiPath}/wiki/index.md`.
+4. If you need domain specifics, read the relevant `{WikiPath}/wiki/<domain>/_index.md`.
+5. Only then read individual wiki pages.
+
+Examples:
+
+- Windows: `C:\Wiki_A`
+- macOS/Linux: `/Users/name/Wiki_A`
+
+`WikiMode: reference` means read-only access. `WikiMode: managed` means wiki
+workflows may write back into `{WikiPath}`.
+
+This keeps token usage low. Hot cache costs ~500 tokens. Index costs ~1000
+tokens. Individual pages cost 100-300 tokens each.
 
 ---
 
 ## Summary
 
 Your job as the LLM:
-1. Set up the vault (once)
-2. Scaffold wiki structure from user's domain description
-3. Route ingest, query, and lint to the correct sub-skill
-4. Maintain hot cache after every operation
-5. Always update index, sub-indexes, log, and hot cache on changes
-6. Always use frontmatter and wikilinks
-7. Never modify .raw/ sources
+1. Resolve the active wiki root first
+2. Set up the vault (once)
+3. Scaffold wiki structure from user's domain description
+4. Route ingest, query, and lint to the correct sub-skill
+5. Maintain hot cache after every operation
+6. Always update index, sub-indexes, log, and hot cache on changes
+7. Always use frontmatter and wikilinks
+8. Never modify `.raw/` sources
+9. Never create or commit wiki files inside the current project when it is bound
+   to a different `WikiPath`
 
 The human's job: curate sources, ask good questions, think about what it means. Everything else is on you.
 

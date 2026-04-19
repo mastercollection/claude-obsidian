@@ -4,6 +4,9 @@ description: Open, create, or update a visual canvas — add images, text, PDFs,
 
 Read the `canvas` skill. Then run the operation matching the user's command.
 
+Before starting, resolve whether the current project is bound to a wiki via
+`WikiMode` and `WikiPath`, or whether the current directory is itself the vault.
+
 | Command | What it does |
 |---------|-------------|
 | `/canvas` | Status check — report node counts, list zones, open instructions |
@@ -18,4 +21,5 @@ Read the `canvas` skill. Then run the operation matching the user's command.
 
 Default canvas: `wiki/canvases/main.canvas`
 
-If the canvas file does not exist, create it before adding anything.
+If no bound wiki or local vault is configured, stop and say so. If the canvas
+file does not exist inside the resolved wiki, create it before adding anything.

@@ -5,14 +5,38 @@ This file is the Codex-facing wrapper for the canonical repo instructions in
 
 Read `CLAUDE.md` first. Use this file only for Codex-specific behavior:
 
-1. If `wiki/hot.md` exists, read it silently at session start before doing wiki work.
+1. Resolve wiki binding first. If the current project declares `WikiMode` and
+   `WikiPath`, read `{WikiPath}/CLAUDE.md` first and then `{WikiPath}/wiki/hot.md`.
+   Otherwise, if the current directory is itself the vault, read local
+   `CLAUDE.md` and `wiki/hot.md`.
 2. Codex does **not** consume this repo's Claude lifecycle hooks from
    `hooks/hooks.json`. Treat those hooks as Claude-only adapter behavior.
 3. For wiki workflows (`ingest`, `query`, `lint`, `save`, `autoresearch`, `canvas`),
-   follow the relevant skill instructions so the same wiki artifacts are maintained:
-   `wiki/index.md`, `wiki/log.md`, and `wiki/hot.md`.
+   follow the relevant skill instructions against the resolved wiki root so the
+   same wiki artifacts are maintained: `wiki/index.md`, `wiki/log.md`, and
+   `wiki/hot.md`.
 4. `allowed-tools` in `SKILL.md` frontmatter are intentionally retained as
    vendor-specific hints. They are not the portable core of the Agent Skills format.
+5. If the current project is bound to another wiki, do not create or commit
+   `wiki/` or `.raw/` inside the current project repo. Code repo commits stay
+   separate from wiki repo commits.
+
+## Project Binding
+
+Use this minimal project-side declaration:
+
+```md
+## Wiki Knowledge Base
+WikiMode: managed
+WikiPath: <ABSOLUTE_PATH_TO_WIKI>
+```
+
+- `WikiMode: reference` = read-only wiki access
+- `WikiMode: managed` = wiki workflows may write to `{WikiPath}`
+- `WikiPath` points at the actual wiki repo root containing `wiki/`, `.raw/`,
+  and the canonical `CLAUDE.md`
+- Example (Windows): `C:\Wiki_A`
+- Example (macOS/Linux): `/Users/name/Wiki_A`
 
 ## Skills Discovery
 
@@ -50,8 +74,8 @@ bash bin/setup-multi-agent.sh
 
 ## Key Conventions
 
-- **Vault root**: the directory containing `wiki/` and `.raw/`
-- **Hot cache**: `wiki/hot.md` (read first for recent context)
+- **Vault root**: the resolved `WikiPath`, or the current directory if it already contains `wiki/` and `.raw/`
+- **Hot cache**: `<vault-root>/wiki/hot.md` (read first for recent context)
 - **Source documents**: `.raw/` (immutable: agents never modify these)
 - **Generated knowledge**: `wiki/` (agent-owned, links to sources via wikilinks)
 - **Manifest**: `.raw/.manifest.json` tracks ingested sources (delta tracking)
@@ -63,7 +87,9 @@ When the user opens this project for the first time:
 1. Read `CLAUDE.md` for the canonical repo instructions
 2. Read this file for Codex-specific adapter notes
 3. Read `skills/wiki/SKILL.md` for the orchestration pattern
-4. If `wiki/hot.md` exists, read it silently to restore recent context
+4. If a project binding exists, read the bound wiki's `CLAUDE.md` and
+   `wiki/hot.md` silently to restore recent context. Otherwise, if the current
+   directory is the vault, read local `wiki/hot.md`.
 5. If the user types `/wiki` or says "set up wiki", follow the wiki skill's scaffold workflow
 
 ## MCP
@@ -73,6 +99,9 @@ Codex uses `codex mcp ...`, not `claude mcp ...`.
 - Check configuration: `codex mcp list`
 - Inspect a server: `codex mcp get obsidian-vault --json`
 - Setup details: `skills/wiki/references/mcp-setup.md`
+
+For local `WikiPath` values on the same machine, filesystem access is the
+default path. MCP is optional.
 
 ## Reference
 

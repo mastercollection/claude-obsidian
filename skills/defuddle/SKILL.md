@@ -12,6 +12,12 @@ Use this before any URL ingestion. It is optional but strongly recommended. It c
 
 ---
 
+## Project Binding
+
+When a project declares `WikiPath`, treat save targets like
+`{WikiPath}/.raw/articles/...`, not the current project directory. Read
+`../wiki/references/project-binding.md` before using the save examples below.
+
 ## Install
 
 ```bash
@@ -30,16 +36,16 @@ defuddle https://example.com/article
 ```
 Outputs clean markdown to stdout.
 
-### Save to .raw/
+### Save to `.raw/`
 ```bash
-defuddle https://example.com/article > .raw/articles/article-slug-$(date +%Y-%m-%d).md
+defuddle https://example.com/article > "{WikiPath}/.raw/articles/article-slug-$(date +%Y-%m-%d).md"
 ```
 
 ### Add frontmatter header after saving
 After running defuddle, prepend the source URL and fetch date:
 ```bash
 SLUG="article-slug-$(date +%Y-%m-%d)"
-{ echo "---"; echo "source_url: https://example.com/article"; echo "fetched: $(date +%Y-%m-%d)"; echo "---"; echo ""; defuddle https://example.com/article; } > .raw/articles/$SLUG.md
+{ echo "---"; echo "source_url: https://example.com/article"; echo "fetched: $(date +%Y-%m-%d)"; echo "---"; echo ""; defuddle https://example.com/article; } > "{WikiPath}/.raw/articles/$SLUG.md"
 ```
 
 ### Clean a local HTML file
@@ -81,4 +87,4 @@ The `/wiki-ingest` skill checks for defuddle automatically when a URL is passed.
 
 To manually clean a page and save before ingesting:
 1. Run the save command above
-2. Then: `ingest .raw/articles/[slug].md`
+2. Then: `ingest {WikiPath}/.raw/articles/[slug].md`

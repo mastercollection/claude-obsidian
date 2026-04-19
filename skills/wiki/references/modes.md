@@ -39,7 +39,8 @@ canonical: ""
 internal_links_in: 0
 internal_links_out: 0
 last_crawled: YYYY-MM-DD
-tags: [page]
+tags:
+  - page
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
@@ -78,10 +79,8 @@ language: typescript
 purpose: ""
 maintainer: ""
 last_updated: YYYY-MM-DD
-linked_issues: []
-depends_on: []
-used_by: []
-tags: [module]
+tags:
+  - module
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
@@ -120,7 +119,8 @@ date: YYYY-MM-DD
 owner: ""
 due_date: ""
 context: ""
-tags: [decision]
+tags:
+  - decision
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
@@ -159,7 +159,8 @@ area: career           # health | career | finance | creative | relationships | 
 priority: 1
 target_date: YYYY-MM-DD
 progress: 0            # 0-100 percent
-tags: [goal]
+tags:
+  - goal
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
@@ -196,13 +197,11 @@ Frontmatter for `wiki/papers/` notes:
 type: paper            # paper | concept | entity | thesis | gap
 status: summarized     # raw | summarized | synthesized | superseded
 year: 2024
-authors: []
 venue: ""
 key_claim: ""
 methodology: ""
-contradicts: []
-supports: []
-tags: [paper]
+tags:
+  - paper
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---
@@ -236,9 +235,9 @@ Frontmatter for `wiki/concepts/` notes:
 ---
 type: concept          # concept | character | theme | chapter | synthesis
 status: developing     # stub | developing | mature
-source_chapters: []
 first_appearance: ""
-tags: [concept]
+tags:
+  - concept
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 ---

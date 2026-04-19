@@ -1,13 +1,17 @@
 # Git Setup
 
-Initialize git in the vault to get full history and protect against bad writes.
+Initialize git in the wiki repo to get full history and protect against bad
+writes.
+
+Do this in the resolved wiki root itself, not in a separate project repo that
+only points at the wiki via `WikiPath`.
 
 ---
 
 ## Initialize
 
 ```bash
-cd "$VAULT_PATH"
+cd "<vault-root>"
 git init
 git add -A
 git commit -m "Initial vault scaffold"
@@ -32,7 +36,7 @@ The root `.gitignore` in this repo already covers the right exclusions:
 
 ---
 
-## Obsidian Git Plugin
+## Obsidian Git Plugin (Optional)
 
 After installing the plugin (see `plugins.md`):
 
@@ -42,7 +46,8 @@ Settings > Obsidian Git:
 - Push on backup: on (if you have a remote)
 - Commit message: `vault: auto backup {{date}}`
 
-This runs silently in the background. You get a full history of every note without thinking about it.
+This is optional. The default repo guidance is still manual commits for the wiki
+repo. If you enable Obsidian Git, enable it only in the wiki repo itself.
 
 ---
 

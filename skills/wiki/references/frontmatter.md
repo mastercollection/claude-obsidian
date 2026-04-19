@@ -104,4 +104,5 @@ page_count: 0
 3. Lists always use the `- item` format, not inline `[a, b, c]`.
 4. Wikilinks in YAML fields must be quoted: `"[[Page Name]]"`.
 5. Keep `related` and `sources` as wikilinks, not plain URLs.
-6. Update `updated` every time you edit the page content.
+6. Omit optional fields such as `related` or `sources` when they would be empty.
+7. Update `updated` every time you edit the page content.

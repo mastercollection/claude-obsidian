@@ -10,9 +10,23 @@ allowed-tools: Read Write Edit Glob Grep
 
 # wiki-lint: Wiki Health Check
 
-Run lint after every 10-15 ingests, or weekly. Ask before auto-fixing anything. Output a lint report to `wiki/meta/lint-report-YYYY-MM-DD.md`.
+Run lint after every 10-15 ingests, or weekly. Ask before auto-fixing anything.
+In `managed` mode, write the lint report to the resolved wiki root under
+`wiki/meta/lint-report-YYYY-MM-DD.md`.
 
 ---
+
+## Project Binding
+
+Before linting:
+
+1. Read `../wiki/references/project-binding.md`.
+2. Resolve the active wiki root.
+3. Treat every `wiki/...` path below as `{WikiPath}/wiki/...` when a project
+   binding exists.
+4. `WikiMode: managed` may write reports, dashboards, and canvas files.
+5. `WikiMode: reference` is read-only. In that mode, report findings in chat
+   only. Do not create `lint-report`, `dashboard.md`, or `overview.canvas`.
 
 ## Lint Checks
 
@@ -29,9 +43,78 @@ Work through these in order:
 
 ---
 
+## Orphan Exceptions
+
+Do not report these files as orphan pages:
+
+- `wiki/hot.md`
+- `wiki/log.md`
+
+These are system meta files and may exist without inbound wikilinks.
+
+---
+
+## Duplicate Heading Check
+
+Apply duplicate-heading checks only to structural documents:
+
+- `wiki/index.md`
+- `wiki/overview.md`
+- `wiki/meta/dashboard.md`
+- `wiki/meta/lint-report-*.md`
+- any folder-local `wiki/**/_index.md`
+
+In those files, do not repeat the same heading text at the same heading level.
+Example: two `## Concepts` headings in one file is a lint finding.
+
+---
+
+## Placeholder Text
+
+Treat these as lint findings in folder-local `_index.md` files:
+
+- `Use this page to collect concept pages stored in this folder.`
+- `Use this page to collect entity pages stored in this folder.`
+- `Use this page to collect domain pages stored in this folder.`
+
+Replace placeholder instructions with one of these states only:
+
+- a list of actual notes in that folder
+- a single explicit empty-state line such as `No concept notes have been created yet.`
+
+---
+
+## Operational Terms
+
+Do not require `[[CLAUDE]]` or project `AGENTS.md` references as evidence for
+operational notes.
+
+Treat these as infrastructure/configuration terms by default:
+
+- `Wiki Binding`
+- `WikiMode`
+- `WikiPath`
+- `AGENTS.md`
+- `CLAUDE.md`
+- MCP server names
+- literal file paths
+
+Write them as code-formatted text, not wikilinks, unless the wiki
+intentionally maintains a real page for that term.
+
+---
+
+## Overview Placeholder Severity
+
+If `wiki/overview.md` still contains the default purpose placeholder, report it
+as a low-severity reminder, not a structural error.
+
+---
+
 ## Lint Report Format
 
-Create at `wiki/meta/lint-report-YYYY-MM-DD.md`:
+Create at `{WikiPath}/wiki/meta/lint-report-YYYY-MM-DD.md` when writes are
+allowed:
 
 ```markdown
 ---
@@ -39,7 +122,9 @@ type: meta
 title: "Lint Report YYYY-MM-DD"
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-tags: [meta, lint]
+tags:
+  - meta
+  - lint
 status: developing
 ---
 
@@ -83,7 +168,12 @@ Enforce these during lint:
 | Tags | lowercase, hierarchical | `#domain/architecture` |
 | Wikilinks | match filename exactly | `[[Machine Learning]]` |
 
-Filenames must be unique across the vault. Wikilinks work without paths only if filenames are unique.
+Filenames must be unique across the vault. Wikilinks work without paths only if
+filenames are unique.
+
+Exception: folder-local `_index.md` files are allowed to repeat. Link those with
+folder-qualified wikilinks such as `[[concepts/_index|Concepts Index]]`,
+`[[entities/_index|Entities Index]]`, and `[[domains/_index|Domains Index]]`.
 
 ---
 
@@ -96,11 +186,15 @@ During lint, flag pages that violate the style guide:
 - Uncertainty not flagged with `> [!gap]`
 - Contradictions not flagged with `> [!contradiction]`
 
+Do not treat the absence of `[[CLAUDE]]` or project `AGENTS.md` links as a
+missing citation for operational notes.
+
 ---
 
 ## Dataview Dashboard
 
-Create or update `wiki/meta/dashboard.md` with these queries:
+Create or update `{WikiPath}/wiki/meta/dashboard.md` with these queries when
+`WikiMode` is `managed`:
 
 ````markdown
 ---
@@ -135,7 +229,8 @@ LIST FROM "wiki/questions" WHERE answer_quality = "draft" SORT created DESC
 
 ## Canvas Map
 
-Create or update `wiki/meta/overview.canvas` for a visual domain map:
+Create or update `{WikiPath}/wiki/meta/overview.canvas` for a visual domain map
+when `WikiMode` is `managed`:
 
 ```json
 {
@@ -159,7 +254,11 @@ Add one node per domain page. Connect domains that have significant cross-refere
 
 ## Before Auto-Fixing
 
-Always show the lint report first. Ask: "Should I fix these automatically, or do you want to review each one?"
+In `managed` mode, always show the lint report first. Ask: "Should I fix these
+automatically, or do you want to review each one?"
+
+In `reference` mode, never apply fixes. Summarize the issues and tell the user
+that the current project has read-only wiki access.
 
 Safe to auto-fix:
 - Adding missing frontmatter fields with placeholder values

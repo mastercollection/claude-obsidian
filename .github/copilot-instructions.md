@@ -21,6 +21,18 @@ markdown-only. No build step, no compiled code, no runtime dependencies.
 - `_templates/`: Obsidian Templater templates
 - `_attachments/`: images and PDFs referenced by wiki pages
 
+Projects may also declare:
+
+- `WikiMode: reference|managed`
+- `WikiPath: <ABSOLUTE_PATH_TO_WIKI>`
+
+Examples:
+- Windows: `C:\Wiki_A`
+- macOS/Linux: `/Users/name/Wiki_A`
+
+If those fields exist in a project `AGENTS.md` or `CLAUDE.md`, the effective
+vault root is `WikiPath`, not the current repo.
+
 ## Conventions Copilot Should Follow
 
 When suggesting edits:
@@ -29,10 +41,11 @@ When suggesting edits:
 2. **Internal links are wikilinks**: `[[Note Name]]`, not Markdown links to `.md` paths
 3. **Dates are `YYYY-MM-DD`**, not ISO datetimes
 4. **`.raw/` is immutable**. Never suggest edits to anything under that path
-5. **`wiki/log.md` is append-only**, with new entries at the top
-6. **`wiki/hot.md` is overwritten** at session end, not appended to
+5. **`wiki/log.md` is append-only** inside the resolved wiki root, with new entries at the top
+6. **`wiki/hot.md` is overwritten** inside the resolved wiki root, not appended to
 7. **Skills must keep `name` and `description` in frontmatter**. This repo also intentionally retains `allowed-tools` as a vendor-specific hint. Do not remove it unless explicitly asked.
 8. **Custom callouts**: this vault defines `[!contradiction]`, `[!gap]`, `[!key-insight]`, `[!stale]` in `.obsidian/snippets/vault-colors.css`. These render only with that snippet enabled.
+9. **Project repo and wiki repo are separate** when `WikiPath` points elsewhere. Do not stage or commit wiki files in the project repo.
 
 ## When Editing Skills (`skills/<name>/SKILL.md`)
 
@@ -47,6 +60,7 @@ When suggesting edits:
 - Hook types: `command` (shell), `prompt` (LLM), `http` (POST), `agent` (subagent)
 - `matcher` field uses regex against tool names for `PreToolUse`/`PostToolUse`
 - For `SessionStart`: matcher uses `startup`, `resume`, `clear`, or `compact`
+- Hooks are convenience-only for local-vault Claude workflows. Bound-project wiki correctness should come from the skills, not hooks.
 
 ## Cross-Reference
 

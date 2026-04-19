@@ -28,7 +28,11 @@ You ask questions. The active agent reads the hot cache (recent context), scans 
 
 You lint. The active agent finds orphans, dead links, stale claims, and missing cross-references. Your wiki stays healthy without manual cleanup.
 
-On Claude Code, repo-local hooks refresh the hot cache at session boundaries. On Codex and other hosts, the same `wiki/hot.md` cache is restored through bootstrap instructions and maintained by the wiki workflows themselves.
+On Claude Code, repo-local hooks can refresh the hot cache at session boundaries
+when the current directory is itself the wiki vault. In project-bound mode,
+hooks are only a convenience layer. Codex and other hosts restore the same
+`wiki/hot.md` cache through bootstrap instructions, and the wiki workflows
+themselves are responsible for maintaining it.
 
 <p align="center">
   <img src="wiki/meta/image-example-graph-view.png" alt="Graph view. Color-coded wiki nodes" width="48%" />
@@ -68,6 +72,13 @@ The repo is split into a cross-host wiki core plus thin host adapters:
 
 This matters because Claude Code supports repo-local lifecycle hooks, while Codex does not. Codex aims for best-effort parity by following the same skill workflows and restoring the same hot cache, but it does not consume `hooks/hooks.json`.
 
+It also runs in **binding-first** mode:
+
+- If the current project declares `WikiMode` and `WikiPath`, the skills operate
+  on that bound wiki root
+- If not, but the current directory already contains `wiki/` and `.raw/`, the
+  current directory is treated as the local vault
+
 ---
 
 ## Quick Start
@@ -95,7 +106,7 @@ Open Claude Code or Codex in the same folder.
 - Claude Code: type `/wiki`
 - Codex: ask it to read `AGENTS.md` and `CLAUDE.md`, then say `set up wiki`
 
-> `setup-vault.sh` and `setup-vault.ps1` configure `graph.json` (filter + colors), `app.json` (excludes plugin dirs), and `appearance.json` (enables CSS). Run one of them once before the first Obsidian open. You get the fully pre-configured graph view, color scheme, and wiki structure out of the box.
+> `setup-vault.sh` and `setup-vault.ps1` configure `graph.json` (filter + colors), `app.json` (excludes plugin dirs), and `appearance.json` (enables CSS). Run one of them once before the first Obsidian open. You get the fully pre-configured graph view, color scheme, and wiki structure out of the box. Use these scripts for the **wiki repo itself** (`<ABSOLUTE_PATH_TO_WIKI>`), not for a separate code repo (`<PROJECT_REPO_PATH>`) that merely points at that wiki.
 
 ---
 
@@ -163,25 +174,54 @@ hosts typically trigger the same skills from natural language prompts instead.
 
 ---
 
-## Cross-Project Power Move
+## Project-Bound Wikis
 
-Point any Claude Code or Codex project at this vault. Add the following guidance to
+Point any Claude Code or Codex project at its own dedicated wiki. Add this to
 that project's `CLAUDE.md` or `AGENTS.md`:
 
 ```markdown
 ## Wiki Knowledge Base
-Path: ~/path/to/vault
-
-When you need context not already in this project:
-1. Read wiki/hot.md first (recent context cache)
-2. If not enough, read wiki/index.md
-3. If you need domain details, read the relevant domain sub-index
-4. Only then drill into specific wiki pages
-
-Do NOT read the wiki for general coding questions or tasks unrelated to [domain].
+WikiMode: managed
+WikiPath: <ABSOLUTE_PATH_TO_WIKI>
 ```
 
-Your executive assistant, coding projects, and content workflows all draw from the same knowledge base.
+Examples:
+
+- Windows: `C:\Wiki_A`
+- macOS/Linux: `/Users/name/Wiki_A`
+
+Then the host should:
+
+1. Read `{WikiPath}/CLAUDE.md` as the canonical wiki contract
+2. Read `{WikiPath}/wiki/hot.md` first
+3. If not enough, read `{WikiPath}/wiki/index.md`
+4. Only then drill into specific wiki pages inside `{WikiPath}/wiki/`
+
+Mode semantics:
+
+- `WikiMode: reference` = read-only lookup
+- `WikiMode: managed` = wiki workflows may write to `WikiPath`
+
+Git boundary:
+
+- The code repo commits code only
+- The wiki repo stores `wiki/`, `.raw/`, `_attachments/`, and its own
+  `CLAUDE.md`
+- Wiki repo commits are manual by default
+
+If `WikiPath` is a local folder on the same machine, direct filesystem access is
+the default path. MCP remains optional.
+
+To normalize an existing wiki root into the standard layout, run:
+
+```powershell
+pwsh -File .\bin\init-bound-wiki.ps1 -VaultPath <ABSOLUTE_PATH_TO_WIKI>
+```
+
+This creates `wiki/`, `.raw/`, baseline index/log/hot files, a reusable
+wiki-local `CLAUDE.md`, and moves top-level folders like `concepts/` and
+`sources/` under `wiki/` when needed. Treat it as a first-time initialization
+or normalization step, not an ongoing maintenance or backfill tool.
 
 ---
 
@@ -222,6 +262,10 @@ MCP lets supported agents read and write vault notes directly without copy-paste
 
 Claude Code examples use `claude mcp ...`. Codex examples use `codex mcp ...`.
 The full host-specific setup guide lives in `skills/wiki/references/mcp-setup.md`.
+
+For project-bound local wikis, direct filesystem access against `WikiPath` is
+the default path. Use MCP when you need host integration or a transport layer,
+not as the primary correctness mechanism.
 
 Option A (REST API based):
 1. Install the Local REST API plugin in Obsidian
@@ -274,7 +318,7 @@ Enable in **Settings → Community Plugins → enable**:
 | Plugin | Purpose |
 |--------|---------|
 | **Templater** | Auto-fills frontmatter from `_templates/` |
-| **Obsidian Git** | Auto-commits vault every 15 minutes |
+| **Obsidian Git** | Optional for the wiki repo only. Manual wiki commits are the default recommendation. |
 | **Dataview** *(optional/legacy)* | Only needed for the legacy `wiki/meta/dashboard.md` queries. The primary dashboard now uses Bases. |
 
 Also install the **[Obsidian Web Clipper](https://obsidian.md/clipper)** browser extension. Sends web pages to `.raw/` in one click.

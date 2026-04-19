@@ -19,6 +19,16 @@ This is based on Karpathy's autoresearch pattern: a configurable program defines
 
 ---
 
+## Project Binding
+
+Before starting:
+
+1. Read `../wiki/references/project-binding.md`.
+2. Resolve the active wiki root.
+3. If `WikiMode` is `reference`, stop. Autoresearch writes multiple pages and is
+   only allowed in `managed` mode or local-vault mode.
+4. Treat every wiki path below as relative to the resolved wiki root.
+
 ## Before Starting
 
 Read `references/program.md` to load the research objectives and constraints. This file is user-configurable. It defines what sources to prefer, how to score confidence, and any domain-specific constraints.
@@ -54,18 +64,18 @@ Max rounds: 3 (as set in program.md). Stop when depth is reached or max rounds h
 
 After research is complete, create these pages:
 
-**wiki/sources/**. One page per major reference found
+**{WikiPath}/wiki/sources/**. One page per major reference found
 - Use source frontmatter (type, source_type, author, date_published, url, confidence, key_claims)
 - Body: summary of the source, what it contributes to the topic
 
-**wiki/concepts/**. One page per significant concept extracted
+**{WikiPath}/wiki/concepts/**. One page per significant concept extracted
 - Only create a page if the concept is substantive enough to stand alone
 - Check the index first: update existing concept pages rather than creating duplicates
 
-**wiki/entities/**. One page per significant person, org, or product identified
+**{WikiPath}/wiki/entities/**. One page per significant person, org, or product identified
 - Check the index first: update existing entity pages
 
-**wiki/questions/**. One synthesis page titled "Research: [Topic]"
+**{WikiPath}/wiki/questions/**. One synthesis page titled "Research: [Topic]"
 - This is the master synthesis. Everything comes together here.
 - Sections: Overview, Key Findings, Entities, Concepts, Contradictions, Open Questions, Sources
 - Full frontmatter with related links to all pages created in this session
@@ -123,8 +133,8 @@ sources:
 
 ## After Filing
 
-1. Update `wiki/index.md`. Add all new pages to the right sections
-2. Append to `wiki/log.md` (at the TOP):
+1. Update `{WikiPath}/wiki/index.md`. Add all new pages to the right sections
+2. Append to `{WikiPath}/wiki/log.md` (at the TOP):
    ```
    ## [YYYY-MM-DD] autoresearch | [Topic]
    - Rounds: N
@@ -133,7 +143,7 @@ sources:
    - Synthesis: [[Research: Topic]]
    - Key finding: [one sentence]
    ```
-3. Update `wiki/hot.md` with the research summary
+3. Update `{WikiPath}/wiki/hot.md` with the research summary
 
 ---
 
@@ -147,10 +157,10 @@ Research complete: [Topic]
 Rounds: N | Searches: N | Pages created: N
 
 Created:
-  wiki/questions/Research: [Topic].md (synthesis)
-  wiki/sources/[Source 1].md
-  wiki/concepts/[Concept 1].md
-  wiki/entities/[Entity 1].md
+  {WikiPath}/wiki/questions/Research: [Topic].md (synthesis)
+  {WikiPath}/wiki/sources/[Source 1].md
+  {WikiPath}/wiki/concepts/[Concept 1].md
+  {WikiPath}/wiki/entities/[Entity 1].md
 
 Key findings:
 - [Finding 1]

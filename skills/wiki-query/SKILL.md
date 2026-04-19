@@ -1,7 +1,7 @@
 ---
 name: wiki-query
 description: "Answer questions using the Obsidian wiki vault. Reads hot cache first, then index, then relevant pages. Synthesizes answers with citations. Files good answers back as wiki pages. Supports quick, standard, and deep modes. Triggers on: what do you know about, query:, what is, explain, summarize, find in wiki, search the wiki, based on the wiki, wiki query quick, wiki query deep."
-allowed-tools: Read Glob Grep
+allowed-tools: Read Write Edit Glob Grep
 ---
 
 # wiki-query: Query the Wiki
@@ -9,6 +9,18 @@ allowed-tools: Read Glob Grep
 The wiki has already done the synthesis work. Read strategically, answer precisely, and file good answers back so the knowledge compounds.
 
 ---
+
+## Project Binding
+
+Before answering:
+
+1. Read `../wiki/references/project-binding.md`.
+2. Resolve the active wiki root.
+3. Treat every `wiki/...` path below as `{WikiPath}/wiki/...` when a project
+   binding exists.
+4. `WikiMode: reference` is read-only. Answer from the wiki, but do not offer to
+   save, append to logs, or update `hot.md`.
+5. `WikiMode: managed` may file answers back into the bound wiki.
 
 ## Query Modes
 
@@ -26,8 +38,8 @@ Three depths. Choose based on the question complexity.
 
 Use when the answer is likely in the hot cache or index summary.
 
-1. Read `wiki/hot.md`. If it answers the question, respond immediately.
-2. If not, read `wiki/index.md`. Scan descriptions for the answer.
+1. Read `{WikiPath}/wiki/hot.md`. If it answers the question, respond immediately.
+2. If not, read `{WikiPath}/wiki/index.md`. Scan descriptions for the answer.
 3. If found in index summary, respond and do not open any pages.
 4. If not found, say "Not in quick cache. Run as standard query?"
 
@@ -37,12 +49,14 @@ Do not open individual wiki pages in quick mode.
 
 ## Standard Query Workflow
 
-1. **Read** `wiki/hot.md` first. It may already have the answer or directly relevant context.
-2. **Read** `wiki/index.md` to find the most relevant pages (scan for titles and descriptions).
+1. **Read** `{WikiPath}/wiki/hot.md` first. It may already have the answer or directly relevant context.
+2. **Read** `{WikiPath}/wiki/index.md` to find the most relevant pages (scan for titles and descriptions).
 3. **Read** those pages. Follow wikilinks to depth-2 for key entities. No deeper.
 4. **Synthesize** the answer in chat. Cite sources with wikilinks: `(Source: [[Page Name]])`.
-5. **Offer to file** the answer: "This analysis seems worth keeping. Should I save it as `wiki/questions/answer-name.md`?"
-6. If the question reveals a **gap**: say "I don't have enough on X. Want to find a source?"
+5. If `WikiMode` is `managed`, **offer to file** the answer: "This analysis
+   seems worth keeping. Should I save it as `{WikiPath}/wiki/questions/answer-name.md`?"
+6. If `WikiMode` is `reference`, skip the filing prompt and keep the answer read-only.
+7. If the question reveals a **gap**: say "I don't have enough on X. Want to find a source?"
 
 ---
 
@@ -50,12 +64,15 @@ Do not open individual wiki pages in quick mode.
 
 Use for synthesis questions, comparisons, or "tell me everything about X."
 
-1. Read `wiki/hot.md` and `wiki/index.md`.
+1. Read `{WikiPath}/wiki/hot.md` and `{WikiPath}/wiki/index.md`.
 2. Identify all relevant sections (concepts, entities, sources, comparisons).
 3. Read every relevant page. No skipping.
 4. If wiki coverage is thin, offer to supplement with web search.
 5. Synthesize a comprehensive answer with full citations.
-6. Always file the result back as a wiki page. Deep answers are too valuable to lose.
+6. If `WikiMode` is `managed`, always file the result back as a wiki page. Deep
+   answers are too valuable to lose.
+7. If `WikiMode` is `reference`, return the deep answer in chat only and state
+   that filing is disabled in read-only mode.
 
 ---
 
@@ -139,7 +156,9 @@ question: "The exact query as asked."
 answer_quality: solid
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-tags: [question, <domain>]
+tags:
+  - question
+  - <domain>
 related:
   - "[[Page referenced in answer]]"
 sources:
@@ -148,9 +167,45 @@ status: developing
 ---
 ```
 
-Then write the answer as the page body. Include citations. Link every mentioned concept or entity.
+If `related` or `sources` would be empty, omit the field entirely. Do not write
+empty inline arrays.
 
-After filing, add an entry to `wiki/index.md` under Questions and append to `wiki/log.md`.
+## Optional Frontmatter Fields
+
+If `related` or `sources` would be empty, omit the field entirely. Do not write
+empty arrays or placeholder values.
+
+## Infrastructure Terms
+
+Do not create wikilinks for infrastructure or configuration terms such as
+`Wiki Binding`, `WikiMode`, `WikiPath`, `AGENTS.md`, `CLAUDE.md`, MCP server
+names, or literal file paths unless this wiki intentionally maintains a real
+page for that term. Use backticks instead.
+
+## Operational Notes
+
+Do not auto-add `[[CLAUDE]]` or project `AGENTS.md` to `related` only to
+justify an operational note. Add those links only if the user explicitly wants
+a real wiki page relationship.
+
+## Index Update Discipline
+
+When updating `wiki/index.md`, add the note to an existing section only. Do not
+create a duplicate section heading.
+
+When updating a folder-local `_index.md`:
+
+- if notes exist in that folder, list the actual notes
+- if no notes exist, keep a single explicit empty-state line
+- do not leave scaffold instructions or generic placeholder text
+
+Then write the answer as the page body. Include citations. Link only concepts or
+entities that already exist or clearly belong as pages in this wiki. Treat
+configuration and infrastructure terms as code-formatted text unless the wiki
+intentionally maintains a real page for that term.
+
+After filing, add an entry to `{WikiPath}/wiki/index.md` under Questions and
+append to `{WikiPath}/wiki/log.md`. Also refresh `{WikiPath}/wiki/hot.md`.
 
 ---
 

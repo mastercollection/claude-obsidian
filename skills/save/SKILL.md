@@ -18,17 +18,28 @@ The wiki compounds. Save often.
 
 ---
 
+## Project Binding
+
+Before saving:
+
+1. Read `../wiki/references/project-binding.md`.
+2. Resolve the active wiki root.
+3. If `WikiMode` is `reference`, stop. `/save` writes to the wiki and is only
+   allowed in `managed` mode or local-vault mode.
+4. Treat every `wiki/...` path below as `{WikiPath}/wiki/...` when a project
+   binding exists.
+
 ## Note Type Decision
 
 Determine the best type from the conversation content:
 
 | Type | Folder | Use when |
 |------|--------|---------|
-| synthesis | wiki/questions/ | Multi-step analysis, comparison, or answer to a specific question |
-| concept | wiki/concepts/ | Explaining or defining an idea, pattern, or framework |
-| source | wiki/sources/ | Summary of external material discussed in the session |
-| decision | wiki/meta/ | Architectural, project, or strategic decision that was made |
-| session | wiki/meta/ | Full session summary: captures everything discussed |
+| synthesis | `{WikiPath}/wiki/questions/` | Multi-step analysis, comparison, or answer to a specific question |
+| concept | `{WikiPath}/wiki/concepts/` | Explaining or defining an idea, pattern, or framework |
+| source | `{WikiPath}/wiki/sources/` | Summary of external material discussed in the session |
+| decision | `{WikiPath}/wiki/meta/` | Architectural, project, or strategic decision that was made |
+| session | `{WikiPath}/wiki/meta/` | Full session summary: captures everything discussed |
 
 If the user specifies a type, use that. If not, pick the best fit based on the content. When in doubt, use `synthesis`.
 
@@ -41,17 +52,19 @@ If the user specifies a type, use that. If not, pick the best fit based on the c
 3. **Determine** note type using the table above.
 4. **Extract** all relevant content from the conversation. Rewrite it in declarative present tense (not "the user asked" but the actual content itself).
 5. **Create** the note in the correct folder with full frontmatter.
-6. **Collect links**: identify any wiki pages mentioned in the conversation. Add them to `related` in frontmatter.
-7. **Update** `wiki/index.md`. Add the new entry at the top of the relevant section.
-8. **Append** to `wiki/log.md`. New entry at the TOP:
+6. **Collect links**: identify any wiki pages mentioned in the conversation.
+   Add them to `related` in frontmatter only if the page already exists or is a
+   real concept/entity page that belongs in this wiki.
+7. **Update** `{WikiPath}/wiki/index.md`. Add the new entry at the top of the relevant section.
+8. **Append** to `{WikiPath}/wiki/log.md`. New entry at the TOP:
    ```
    ## [YYYY-MM-DD] save | Note Title
    - Type: [note type]
-   - Location: wiki/[folder]/Note Title.md
+   - Location: `{WikiPath}/wiki/[folder]/Note Title.md`
    - From: conversation on [brief topic description]
    ```
-9. **Update** `wiki/hot.md` to reflect the new addition.
-10. **Confirm**: "Saved as [[Note Title]] in wiki/[folder]/."
+9. **Update** `{WikiPath}/wiki/hot.md` to reflect the new addition.
+10. **Confirm**: "Saved as [[Note Title]] in `{WikiPath}/wiki/[folder]/`."
 
 ---
 
@@ -73,6 +86,38 @@ sources:
 ---
 ```
 
+If `related` or `sources` would be empty, omit the field entirely. Do not write
+empty inline arrays like `sources: []`.
+
+## Optional Frontmatter Fields
+
+If `related` or `sources` would be empty, omit the field entirely. Do not write
+empty arrays or placeholder values.
+
+## Infrastructure Terms
+
+Do not create wikilinks for infrastructure or configuration terms such as
+`Wiki Binding`, `WikiMode`, `WikiPath`, `AGENTS.md`, `CLAUDE.md`, MCP server
+names, or literal file paths unless this wiki intentionally maintains a real
+page for that term. Use backticks instead.
+
+## Operational Notes
+
+Do not auto-add `[[CLAUDE]]` or project `AGENTS.md` to `related` only to
+justify an operational note. Add those links only if the user explicitly wants
+a real wiki page relationship.
+
+## Index Update Discipline
+
+When updating `wiki/index.md`, add the note to an existing section only. Do not
+create a duplicate section heading.
+
+When updating a folder-local `_index.md`:
+
+- if notes exist in that folder, list the actual notes
+- if no notes exist, keep a single explicit empty-state line
+- do not leave scaffold instructions or generic placeholder text
+
 For `question` type, add:
 ```yaml
 question: "The original query as asked."
@@ -93,7 +138,8 @@ status: active
 - Not: "The user asked about X and Claude explained..."
 - Yes: "X works by doing Y. The key insight is Z."
 - Include all relevant context. Future sessions should be able to read this page cold.
-- Link every mentioned concept, entity, or wiki page with wikilinks.
+- Link only concepts, entities, or wiki pages that already exist or clearly
+  belong as pages in this wiki.
 - Cite sources where applicable: `(Source: [[Page]])`.
 
 ---

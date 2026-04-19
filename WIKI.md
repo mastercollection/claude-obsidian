@@ -545,25 +545,37 @@ grep "^## \[" wiki/log.md | head -10
 
 ---
 
-## 6 — Cross-Project Referencing
+## 6 — Project Binding
 
-Any Claude Code project can read your wiki without duplicating context.
+Any project can bind to a dedicated wiki without duplicating context.
 
-In another project's CLAUDE.md, add:
+In the project's `CLAUDE.md` or `AGENTS.md`, add:
 
 ```markdown
 ## Wiki Knowledge Base
-Path: ~/Documents/Obsidian Vault
-
-When you need context not already in this project:
-1. Read wiki/hot.md first (recent context, ~500 words)
-2. If not enough, read wiki/index.md (full catalog)
-3. If you need domain specifics, read wiki/<domain>/_index.md
-4. Only then read individual wiki pages
-
-Do NOT read the wiki for general coding questions, things already in this
-project's context, or tasks unrelated to [your domain].
+WikiMode: managed
+WikiPath: <ABSOLUTE_PATH_TO_WIKI>
 ```
+
+Examples:
+- Windows: `C:\Wiki_A`
+- macOS/Linux: `/Users/name/Wiki_A`
+
+Then resolve the workflow like this:
+1. Read `{WikiPath}/CLAUDE.md` as the canonical wiki contract
+2. Read `{WikiPath}/wiki/hot.md` first (recent context, ~500 words)
+3. If not enough, read `{WikiPath}/wiki/index.md` (full catalog)
+4. If you need domain specifics, read the relevant sub-index inside `{WikiPath}/wiki/`
+5. Only then read individual wiki pages
+
+Mode semantics:
+- `WikiMode: reference` = read-only lookup
+- `WikiMode: managed` = wiki workflows may write to `WikiPath`
+
+Git boundary:
+- The project repo commits code only
+- The wiki repo stores `wiki/`, `.raw/`, `_attachments/`, and its own `CLAUDE.md`
+- Wiki repo commits are manual by default
 
 This keeps token usage low. Hot cache costs ~500 tokens. Index costs ~1000 tokens. Individual pages cost 100-300 tokens each.
 
